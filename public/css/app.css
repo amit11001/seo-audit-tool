@@ -1,0 +1,411 @@
+/* ---------------------------------------------------------------------------
+   SEO Audit Tool
+
+   One design rule drives everything here: colour is reserved for diagnosis.
+   The entire interface is ink on paper, and the only saturated colour in the
+   whole UI is a pass / warn / fail signal. That way a report can be read at a
+   glance without anything competing for attention.
+
+   Type is a system stack on purpose — zero font requests is the right call for
+   a tool that penalises other sites for slow first paint.
+--------------------------------------------------------------------------- */
+
+:root {
+  --ink:        #14202c;
+  --ink-soft:   #52657a;
+  --ink-faint:  #7c8da0;
+  --rule:       #d9dfe6;
+  --paper:      #f2f5f8;
+  --white:      #ffffff;
+
+  --pass:       #0e7a54;
+  --pass-bg:    #e8f4ef;
+  --warn:       #925c00;
+  --warn-bg:    #fbf1de;
+  --fail:       #b02a2a;
+  --fail-bg:    #fbeceb;
+  --info:       #52657a;
+  --info-bg:    #eef1f5;
+
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --measure: 68ch;
+  --shell: 60rem;
+  --radius: 3px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  font-feature-settings: "kern" 1;
+}
+
+h1, h2, h3 { line-height: 1.2; letter-spacing: -0.015em; margin: 0 0 0.5em; }
+h1 { font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem); font-weight: 650; }
+h2 { font-size: 1.3rem; font-weight: 620; }
+h3 { font-size: 1.03rem; font-weight: 620; }
+p  { margin: 0 0 1rem; max-width: var(--measure); }
+
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { color: var(--ink-soft); }
+
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--info-bg);
+  padding: 0.12em 0.36em;
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 1rem; top: 1rem;
+  z-index: 10;
+  background: var(--white);
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--ink);
+}
+
+/* ------------------------------------------------------------- structure */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.wordmark-mark {
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  border-right-color: transparent;
+  transform: rotate(-30deg);
+}
+
+.masthead nav { display: flex; gap: 1.25rem; font-size: 0.94rem; }
+.masthead nav a { text-decoration: none; color: var(--ink-soft); }
+.masthead nav a:hover { color: var(--ink); text-decoration: underline; }
+.masthead nav a[aria-current="page"] { color: var(--ink); font-weight: 600; }
+
+main {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.footer {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+.footer p { margin-bottom: 0.35rem; }
+.footer-meta { color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------ hero */
+.hero { margin-bottom: 3rem; }
+.hero-compact { margin-bottom: 2rem; }
+.hero h1 { max-width: 20ch; }
+.hero-lede {
+  font-size: 1.08rem;
+  color: var(--ink-soft);
+  max-width: 62ch;
+}
+
+/* The form is the hero: the product's job starts the moment a URL is typed. */
+.audit-form { margin-top: 2rem; max-width: 40rem; }
+.audit-form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 0.4rem;
+}
+.audit-form-row { display: flex; gap: 0.5rem; }
+
+input[type="text"], select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--ink);
+}
+input[type="text"]:focus, select:focus { border-color: var(--ink); }
+
+button {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--white);
+  cursor: pointer;
+}
+button:hover { background: #1f3141; }
+
+.button-secondary {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  text-decoration: none;
+  background: transparent;
+}
+.button-secondary:hover { background: var(--ink); color: var(--white); }
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-button:hover { color: var(--fail); }
+
+.field-help { font-size: 0.86rem; color: var(--ink-soft); margin: 0.5rem 0 0; }
+.field-error {
+  margin: 0.65rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--fail);
+  background: var(--fail-bg);
+  color: var(--fail);
+  font-size: 0.92rem;
+}
+
+.stack-form { max-width: 34rem; display: grid; gap: 0.3rem; }
+.stack-form label { font-weight: 600; font-size: 0.92rem; margin-top: 0.8rem; }
+.stack-form button { margin-top: 1.2rem; justify-self: start; }
+
+/* ----------------------------------------------------------------- panels */
+.panel {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.section-note { color: var(--ink-soft); font-size: 0.94rem; }
+.empty { text-align: left; color: var(--ink-soft); }
+
+.category-list { margin: 0; display: grid; gap: 1rem; }
+.category-list dt { font-weight: 620; }
+.category-list dd { margin: 0.15rem 0 0; color: var(--ink-soft); max-width: var(--measure); }
+
+/* ---------------------------------------------------------------- verdict */
+.report-head { margin-bottom: 2.5rem; }
+.report-target { font-family: var(--mono); font-size: 0.86rem; color: var(--ink-soft); margin-bottom: 0.4rem; }
+.report-target a { overflow-wrap: anywhere; }
+
+.verdict { margin: 1.5rem 0; }
+.verdict-score { display: flex; align-items: baseline; gap: 0.7rem; }
+.verdict-number {
+  font-size: clamp(3rem, 2rem + 5vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.verdict-grade { font-size: 0.95rem; color: var(--ink-soft); }
+
+.grade-A .verdict-number, .grade-B .verdict-number { color: var(--pass); }
+.grade-C .verdict-number { color: var(--warn); }
+.grade-D .verdict-number, .grade-F .verdict-number { color: var(--fail); }
+
+.verdict-bar {
+  height: 6px;
+  background: var(--rule);
+  border-radius: 99px;
+  margin: 1rem 0;
+  max-width: 34rem;
+  overflow: hidden;
+}
+.verdict-bar span { display: block; height: 100%; background: var(--ink); }
+
+.verdict-counts {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.94rem;
+}
+.verdict-counts strong { font-variant-numeric: tabular-nums; }
+.verdict-counts .is-pass strong { color: var(--pass); }
+.verdict-counts .is-warn strong { color: var(--warn); }
+.verdict-counts .is-fail strong { color: var(--fail); }
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9rem;
+}
+.facts dt { color: var(--ink-soft); }
+.facts dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ----------------------------------------------------------- check lists */
+.group { margin-bottom: 2.25rem; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+
+/* The left rail is the only place a status colour appears at full strength.
+   It turns the report into something you can scan vertically. */
+.check {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.95rem 1.1rem;
+}
+.check-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.check-head h3 { margin: 0; }
+.check-message { margin: 0.3rem 0 0; color: var(--ink-soft); font-size: 0.95rem; }
+.check-detail { margin: 0.5rem 0 0; }
+.check-detail code { display: inline-block; max-width: 100%; }
+
+.status-tag, .weight-tag {
+  flex: none;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.check.is-pass { border-left-color: var(--pass); }
+.check.is-pass .status-tag { background: var(--pass-bg); color: var(--pass); }
+.check.is-warn { border-left-color: var(--warn); }
+.check.is-warn .status-tag { background: var(--warn-bg); color: var(--warn); }
+.check.is-fail { border-left-color: var(--fail); }
+.check.is-fail .status-tag { background: var(--fail-bg); color: var(--fail); }
+.check.is-reference { border-left-color: var(--rule); }
+
+.fix {
+  margin: 0.6rem 0 0;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--rule);
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+/* The priority list is genuinely ordered by urgency, so it earns its numbers. */
+.priorities { margin-bottom: 2.5rem; }
+.priority-list { margin: 1rem 0 0; padding-left: 1.4rem; display: grid; gap: 0.9rem; }
+.priority-list li { padding-left: 0.4rem; }
+.priority-list h3 { margin-bottom: 0.15rem; }
+.priority-list p { margin-bottom: 0; color: var(--ink-soft); font-size: 0.95rem; }
+.priority-list .fix { color: var(--ink); margin-top: 0.4rem; }
+.priority-list li.is-fail::marker { color: var(--fail); font-weight: 700; }
+.priority-list li.is-warn::marker { color: var(--warn); font-weight: 700; }
+
+/* ------------------------------------------------------------ recent list */
+.recent { list-style: none; margin: 0; padding: 0; }
+.recent li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.recent li:last-child { border-bottom: none; }
+.recent li > a { display: inline-flex; align-items: baseline; gap: 0.6rem; text-decoration: none; }
+.recent-domain { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.recent-meta { color: var(--ink-soft); font-size: 0.86rem; }
+
+.score-chip {
+  display: inline-block;
+  min-width: 2.1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius);
+  background: var(--info-bg);
+  color: var(--info);
+}
+.score-chip.grade-A, .score-chip.grade-B { background: var(--pass-bg); color: var(--pass); }
+.score-chip.grade-C { background: var(--warn-bg); color: var(--warn); }
+.score-chip.grade-D, .score-chip.grade-F { background: var(--fail-bg); color: var(--fail); }
+
+/* ---------------------------------------------------------------- tables */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+.data-table caption { text-align: left; color: var(--ink-soft); font-size: 0.86rem; padding-bottom: 0.6rem; }
+.data-table th, .data-table td {
+  text-align: left;
+  padding: 0.55rem 0.6rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+.data-table th { font-weight: 620; color: var(--ink-soft); }
+.data-table td form { display: inline; }
+.note { display: block; font-size: 0.82rem; color: var(--ink-faint); }
+
+.intent { font-weight: 600; font-size: 0.84rem; }
+.intent-transactional { color: var(--fail); }
+.intent-commercial { color: var(--warn); }
+.intent-navigational { color: var(--info); }
+.intent-informational { color: var(--ink-faint); }
+
+.opportunity { border-left: 4px solid var(--warn); }
+.gap-list { margin: 0.8rem 0 0; padding-left: 1.2rem; }
+.gap-list li { margin-bottom: 0.3rem; }
+.gap-meta { color: var(--ink-soft); font-size: 0.86rem; }
+
+/* --------------------------------------------------------------- responsive */
+@media (max-width: 34rem) {
+  .audit-form-row { flex-direction: column; }
+  .audit-form-row button { width: 100%; }
+  .masthead { padding-bottom: 1rem; }
+  .data-table { font-size: 0.86rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

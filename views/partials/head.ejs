@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %></title>
+  <meta name="description" content="<%= description %>">
+  <link rel="canonical" href="<%= baseUrl %><%= canonicalPath %>">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SEO Audit Tool">
+  <meta property="og:title" content="<%= title %>">
+  <meta property="og:description" content="<%= description %>">
+  <meta property="og:url" content="<%= baseUrl %><%= canonicalPath %>">
+  <meta property="og:image" content="<%= baseUrl %>/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= title %>">
+  <meta name="twitter:description" content="<%= description %>">
+  <meta name="twitter:image" content="<%= baseUrl %>/og-card.svg">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "<%= baseUrl %>/#app",
+        "name": "SEO Audit Tool",
+        "url": "<%= baseUrl %>/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "description": "Runs 27 weighted on-page and technical SEO checks against any public URL and returns a prioritised fix list.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "<%= baseUrl %><%= canonicalPath %>",
+        "url": "<%= baseUrl %><%= canonicalPath %>",
+        "name": "<%= title %>",
+        "description": "<%= description %>",
+        "isPartOf": { "@id": "<%= baseUrl %>/#app" }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="masthead">
+    <a class="wordmark" href="/">
+      <span class="wordmark-mark" aria-hidden="true"></span>
+      SEO Audit
+    </a>
+    <nav aria-label="Main">
+      <a href="/" <%= path === '/' ? 'aria-current="page"' : '' %>>Run an audit</a>
+      <a href="/history" <%= path === '/history' ? 'aria-current="page"' : '' %>>History</a>
+      <a href="/guide" <%= path === '/guide' ? 'aria-current="page"' : '' %>>Check guide</a>
+    </nav>
+  </header>
+  <main id="main">

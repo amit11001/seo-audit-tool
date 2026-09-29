@@ -1,0 +1,51 @@
+<%- include('partials/head') %>
+
+<section class="hero hero-compact">
+  <h1>Audit history</h1>
+  <p class="hero-lede">Every domain checked with this tool, and how its score has moved.</p>
+</section>
+
+<% if (!sites.length) { %>
+  <section class="panel empty">
+    <h2>Nothing audited yet</h2>
+    <p>Run your first audit and the results will collect here.</p>
+    <p><a class="button-secondary" href="/">Run an audit</a></p>
+  </section>
+<% } else { %>
+<section class="panel">
+  <h2>Domains</h2>
+  <ul class="recent">
+    <% sites.forEach(function (s) { %>
+      <li>
+        <a href="/sites/<%= s.id %>/keywords">
+          <span class="recent-domain"><%= s.domain %></span>
+        </a>
+        <span class="recent-meta"><%= s.audit_count %> audit(s), last <%= s.last_audit ? new Date(s.last_audit).toLocaleDateString('en-IN') : 'never' %></span>
+      </li>
+    <% }); %>
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>All runs</h2>
+  <table class="data-table">
+    <caption>Audit runs, newest first</caption>
+    <thead>
+      <tr><th scope="col">Domain</th><th scope="col">Score</th><th scope="col">Failed</th><th scope="col">Warnings</th><th scope="col">When</th></tr>
+    </thead>
+    <tbody>
+      <% recent.forEach(function (a) { %>
+        <tr>
+          <td><a href="/audit/<%= a.id %>"><%= a.domain %></a></td>
+          <td><span class="score-chip grade-<%= a.grade %>"><%= a.score %></span></td>
+          <td><%= a.failed %></td>
+          <td><%= a.warned %></td>
+          <td><%= new Date(a.created_at).toLocaleString('en-IN') %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</section>
+<% } %>
+
+<%- include('partials/foot') %>

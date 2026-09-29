@@ -1,0 +1,81 @@
+<%- include('partials/head') %>
+
+<section class="hero hero-compact">
+  <h1>Keyword map for <%= site.domain %></h1>
+  <p class="hero-lede">
+    Phrases pulled from the page body, grouped by what a searcher typing them is trying to do.
+    Transactional and commercial phrases are the ones worth money.
+  </p>
+</section>
+
+<% if (gaps.length) { %>
+<section class="panel opportunity">
+  <h2>Title tag gaps</h2>
+  <p class="section-note">
+    These phrases appear repeatedly in the body copy and carry buying intent, but none of them
+    is in the title tag. That is the cheapest ranking gain available on this page.
+  </p>
+  <ul class="gap-list">
+    <% gaps.slice(0, 10).forEach(function (k) { %>
+      <li><strong><%= k.phrase %></strong> <span class="gap-meta"><%= k.intent %>, used <%= k.occurrences %>&times;</span></li>
+    <% }); %>
+  </ul>
+</section>
+<% } %>
+
+<section class="panel">
+  <h2>All keywords</h2>
+  <% if (!keywords.length) { %>
+    <p>No keywords stored yet. Run an audit on this domain, or add one below.</p>
+  <% } else { %>
+  <table class="data-table">
+    <caption>Keywords by intent, highest commercial value first</caption>
+    <thead>
+      <tr>
+        <th scope="col">Phrase</th><th scope="col">Intent</th><th scope="col">Uses</th>
+        <th scope="col">Title</th><th scope="col">H1</th><th scope="col">Meta</th><th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% keywords.forEach(function (k) { %>
+        <tr>
+          <td><%= k.phrase %><% if (k.notes) { %><span class="note"><%= k.notes %></span><% } %></td>
+          <td><span class="intent intent-<%= k.intent %>"><%= k.intent %></span></td>
+          <td><%= k.occurrences %></td>
+          <td><%= k.in_title ? 'yes' : '—' %></td>
+          <td><%= k.in_h1 ? 'yes' : '—' %></td>
+          <td><%= k.in_meta ? 'yes' : '—' %></td>
+          <td>
+            <form action="/sites/<%= site.id %>/keywords/<%= k.id %>/delete" method="post">
+              <button class="link-button" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <% } %>
+</section>
+
+<section class="panel">
+  <h2>Track another keyword</h2>
+  <form class="stack-form" action="/sites/<%= site.id %>/keywords" method="post">
+    <label for="phrase">Phrase</label>
+    <input id="phrase" name="phrase" type="text" required maxlength="191" placeholder="industrial automation company in pune">
+
+    <label for="intent">Search intent</label>
+    <select id="intent" name="intent">
+      <option value="transactional">Transactional — ready to buy or enquire</option>
+      <option value="commercial">Commercial — comparing options</option>
+      <option value="informational" selected>Informational — researching</option>
+      <option value="navigational">Navigational — looking for a known brand</option>
+    </select>
+
+    <label for="notes">Notes</label>
+    <input id="notes" name="notes" type="text" maxlength="500" placeholder="Landing page planned for Q4">
+
+    <button type="submit">Add keyword</button>
+  </form>
+</section>
+
+<%- include('partials/foot') %>

@@ -1,0 +1,57 @@
+<%- include('partials/head') %>
+
+<section class="hero hero-compact">
+  <h1>What each check means</h1>
+  <p class="hero-lede">
+    The score is weighted, not a simple count. A missing title tag costs ten times what a missing
+    favicon does, because that is roughly how much each one matters to a search engine. This page
+    is generated from the same registry the engine runs, so it never drifts out of date.
+  </p>
+</section>
+
+<section class="panel">
+  <h2>How scoring works</h2>
+  <p>
+    Every check returns pass, warn or fail and carries a weight from 1 to 10. A pass earns the full
+    weight, a warning earns half, a failure earns none. The score is the total earned divided by the
+    total available, so a page with <%= total %> checks and <%= maxWeight %> weight points available
+    is scored on what actually applies to it — checks that cannot apply, like image alt text on a page
+    with no images, are reported but left out of the maths.
+  </p>
+  <p>
+    Grades: A is 90 and above, B is 80, C is 70, D is 55, anything lower is an F.
+  </p>
+</section>
+
+<% groups.forEach(function (group) { %>
+  <section class="group">
+    <h2><%= group.name %></h2>
+    <ul class="checks">
+      <% group.items.forEach(function (c) { %>
+        <li class="check is-reference">
+          <div class="check-head">
+            <h3><%= c.label %></h3>
+            <span class="weight-tag">weight <%= c.weight %></span>
+          </div>
+          <p class="check-message"><code><%= c.id %></code></p>
+        </li>
+      <% }); %>
+    </ul>
+  </section>
+<% }); %>
+
+<section class="panel">
+  <h2>What this tool does not do</h2>
+  <p>
+    It reads the HTML the server returns. It does not execute JavaScript, so a page that renders its
+    content client-side will look emptier here than it does in a browser — which is close to how
+    some crawlers see it anyway, and is itself worth knowing.
+  </p>
+  <p>
+    It also does not report search volume or difficulty. Those numbers come from paid data providers.
+    Intent classification here is rule-based and transparent: you can read the patterns in
+    <code>lib/keywords.js</code> and change them.
+  </p>
+</section>
+
+<%- include('partials/foot') %>

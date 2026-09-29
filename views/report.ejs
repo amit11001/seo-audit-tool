@@ -1,0 +1,91 @@
+<%- include('partials/head') %>
+
+<article class="report">
+  <header class="report-head">
+    <p class="report-target"><a href="<%= audit.final_url %>" rel="noopener nofollow" target="_blank"><%= audit.final_url %></a></p>
+    <h1>SEO report for <%= audit.domain %></h1>
+
+    <div class="verdict">
+      <div class="verdict-score grade-<%= audit.grade %>">
+        <span class="verdict-number"><%= audit.score %></span>
+        <span class="verdict-grade">grade <%= audit.grade %></span>
+      </div>
+      <div class="verdict-bar" role="img" aria-label="Score <%= audit.score %> out of 100">
+        <span style="width: <%= audit.score %>%"></span>
+      </div>
+      <ul class="verdict-counts">
+        <li class="is-fail"><strong><%= audit.failed %></strong> failed</li>
+        <li class="is-warn"><strong><%= audit.warned %></strong> warnings</li>
+        <li class="is-pass"><strong><%= audit.passed %></strong> passed</li>
+      </ul>
+    </div>
+
+    <dl class="facts">
+      <div><dt>Status</dt><dd><%= audit.status_code %></dd></div>
+      <div><dt>First byte</dt><dd><%= audit.ttfb_ms %> ms</dd></div>
+      <div><dt>HTML size</dt><dd><%= Math.round(audit.page_bytes / 1024) %> KB</dd></div>
+      <div><dt>Words</dt><dd><%= audit.word_count %></dd></div>
+      <div><dt>Run</dt><dd><%= new Date(audit.created_at).toLocaleString('en-IN') %></dd></div>
+    </dl>
+  </header>
+
+  <% if (priorities.length) { %>
+  <section class="priorities">
+    <h2>Fix these first</h2>
+    <p class="section-note">Ordered by failure severity, then by how much each check weighs in the score.</p>
+    <ol class="priority-list">
+      <% priorities.forEach(function (p) { %>
+        <li class="is-<%= p.status %>">
+          <h3><%= p.label %></h3>
+          <p><%= p.message %></p>
+          <% if (p.fix) { %><p class="fix"><%= p.fix %></p><% } %>
+        </li>
+      <% }); %>
+    </ol>
+  </section>
+  <% } %>
+
+  <% groups.forEach(function (group) { %>
+    <section class="group">
+      <h2><%= group.name %></h2>
+      <ul class="checks">
+        <% group.items.forEach(function (c) { %>
+          <li class="check is-<%= c.status %>">
+            <div class="check-head">
+              <h3><%= c.label %></h3>
+              <span class="status-tag"><%= c.status %></span>
+            </div>
+            <p class="check-message"><%= c.message %></p>
+            <% if (c.detail) { %><p class="check-detail"><code><%= c.detail %></code></p><% } %>
+            <% if (c.fix) { %><p class="fix"><%= c.fix %></p><% } %>
+          </li>
+        <% }); %>
+      </ul>
+    </section>
+  <% }); %>
+
+  <section class="panel">
+    <h2>Next steps</h2>
+    <p>
+      Keyword intent for this domain is broken out on the
+      <a href="/sites/<%= audit.site_id %>/keywords">keyword map</a>, which flags phrases the page
+      uses repeatedly but never puts in the title tag.
+    </p>
+    <% if (history.length > 1) { %>
+      <h3>Previous runs</h3>
+      <ul class="recent">
+        <% history.forEach(function (h) { %>
+          <li>
+            <a href="/audit/<%= h.id %>">
+              <span class="recent-domain"><%= new Date(h.created_at).toLocaleString('en-IN') %></span>
+              <span class="score-chip grade-<%= h.grade %>"><%= h.score %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+    <p><a class="button-secondary" href="/api/audits/<%= audit.id %>">View as JSON</a></p>
+  </section>
+</article>
+
+<%- include('partials/foot') %>

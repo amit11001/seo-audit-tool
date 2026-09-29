@@ -1,0 +1,76 @@
+<%- include('partials/head') %>
+
+<section class="hero">
+  <h1>Find out why a page isn't ranking.</h1>
+  <p class="hero-lede">
+    Paste any public URL. The tool fetches the page, runs 27 weighted checks across
+    metadata, content, technical health, structured data and internal linking, then
+    hands back a score and an ordered list of what to fix first.
+  </p>
+
+  <form class="audit-form" action="/audit" method="post">
+    <label for="url">Page to audit</label>
+    <div class="audit-form-row">
+      <input
+        id="url"
+        name="url"
+        type="text"
+        inputmode="url"
+        autocomplete="url"
+        placeholder="syscom.co.in"
+        value="<%= submitted %>"
+        required
+        aria-describedby="url-help<%= error ? ' url-error' : '' %>">
+      <button type="submit">Run audit</button>
+    </div>
+    <p class="field-help" id="url-help">No sign-up. The page is fetched once, read-only.</p>
+    <% if (error) { %>
+      <p class="field-error" id="url-error" role="alert"><%= error %></p>
+    <% } %>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>What gets checked</h2>
+  <dl class="category-list">
+    <div>
+      <dt>Metadata</dt>
+      <dd>Title, description, canonical, viewport, language, encoding and whether the page is indexable at all.</dd>
+    </div>
+    <div>
+      <dt>Content</dt>
+      <dd>H1 presence, heading hierarchy, image alt coverage, word count, and whether the title and H1 target the same topic.</dd>
+    </div>
+    <div>
+      <dt>Technical</dt>
+      <dd>HTTPS, status and redirects, time to first byte, HTML payload, compression, mixed content, robots.txt and sitemap.xml.</dd>
+    </div>
+    <div>
+      <dt>Structured data</dt>
+      <dd>JSON-LD validity and type coverage, the full Open Graph set, and Twitter card tags.</dd>
+    </div>
+    <div>
+      <dt>Links</dt>
+      <dd>Internal link count, generic anchor text, links with no accessible name, and unsafe <code>target="_blank"</code>.</dd>
+    </div>
+  </dl>
+</section>
+
+<% if (recent.length) { %>
+<section class="panel">
+  <h2>Recent audits</h2>
+  <ul class="recent">
+    <% recent.forEach(function (a) { %>
+      <li>
+        <a href="/audit/<%= a.id %>">
+          <span class="recent-domain"><%= a.domain %></span>
+          <span class="score-chip grade-<%= a.grade %>"><%= a.score %></span>
+        </a>
+        <span class="recent-meta"><%= a.failed %> failed, <%= a.warned %> warnings</span>
+      </li>
+    <% }); %>
+  </ul>
+</section>
+<% } %>
+
+<%- include('partials/foot') %>
