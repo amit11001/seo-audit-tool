@@ -10,6 +10,7 @@ const compression = require('compression');
 const routes = require('./routes/index');
 const seoRoutes = require('./routes/seo');
 const db = require('./config/db');
+const { formatDateTime, formatDate, currentYear } = require('./lib/time');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -54,7 +55,9 @@ app.use(express.urlencoded({ extended: false, limit: '32kb' }));
 app.use((req, res, next) => {
   res.locals.baseUrl = (process.env.BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
   res.locals.path = req.path;
-  res.locals.year = new Date().getFullYear();
+  res.locals.year = currentYear();
+  res.locals.formatDateTime = formatDateTime;
+  res.locals.formatDate = formatDate;
   next();
 });
 

@@ -23,6 +23,14 @@ const pool = mysql.createPool({
   ssl: sslConfig()
 });
 
+// `timezone: 'Z'` only tells the driver to *read* values as UTC. Pin every
+// session to UTC too, otherwise a server running in IST (or anything else)
+// hands back local times that the driver then mislabels as UTC. Commands on a
+// connection run in order, so this lands before the first real query.
+pool.on('connection', (conn) => {
+  conn.query("SET time_zone = '+00:00'");
+});
+
 async function query(sql, params = []) {
   const [rows] = await pool.execute(sql, params);
   return rows;

@@ -20,7 +20,7 @@
         <a href="/sites/<%= s.id %>/keywords">
           <span class="recent-domain"><%= s.domain %></span>
         </a>
-        <span class="recent-meta"><%= s.audit_count %> audit(s), last <%= s.last_audit ? new Date(s.last_audit).toLocaleDateString('en-IN') : 'never' %></span>
+        <span class="recent-meta"><%= s.audit_count %> audit(s), last <%= s.last_audit ? formatDate(s.last_audit) : 'never' %></span>
       </li>
     <% }); %>
   </ul>
@@ -40,7 +40,7 @@
           <td><span class="score-chip grade-<%= a.grade %>"><%= a.score %></span></td>
           <td><%= a.failed %></td>
           <td><%= a.warned %></td>
-          <td><%= new Date(a.created_at).toLocaleString('en-IN') %></td>
+          <td><%= formatDateTime(a.created_at) %></td>
         </tr>
       <% }); %>
     </tbody>

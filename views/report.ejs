@@ -25,7 +25,7 @@
       <div><dt>First byte</dt><dd><%= audit.ttfb_ms %> ms</dd></div>
       <div><dt>HTML size</dt><dd><%= Math.round(audit.page_bytes / 1024) %> KB</dd></div>
       <div><dt>Words</dt><dd><%= audit.word_count %></dd></div>
-      <div><dt>Run</dt><dd><%= new Date(audit.created_at).toLocaleString('en-IN') %></dd></div>
+      <div><dt>Run</dt><dd><%= formatDateTime(audit.created_at) %></dd></div>
     </dl>
   </header>
 
@@ -77,7 +77,7 @@
         <% history.forEach(function (h) { %>
           <li>
             <a href="/audit/<%= h.id %>">
-              <span class="recent-domain"><%= new Date(h.created_at).toLocaleString('en-IN') %></span>
+              <span class="recent-domain"><%= formatDateTime(h.created_at) %></span>
               <span class="score-chip grade-<%= h.grade %>"><%= h.score %></span>
             </a>
           </li>
