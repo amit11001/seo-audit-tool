@@ -1,6 +1,7 @@
 'use strict';
 
 const mysql = require('mysql2/promise');
+const { sslConfig } = require('./ssl');
 
 /**
  * A single shared connection pool for the whole process.
@@ -18,8 +19,8 @@ const pool = mysql.createPool({
   queueLimit: 0,
   charset: 'utf8mb4',
   timezone: 'Z',
-  // Managed MySQL (Aiven, PlanetScale, Railway) requires TLS.
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined
+  // Managed MySQL (Aiven, PlanetScale, Railway) requires TLS. See config/ssl.js.
+  ssl: sslConfig()
 });
 
 async function query(sql, params = []) {
